@@ -16,7 +16,7 @@ from setuptools import Extension, find_packages, setup
 
 platform_is_windows = sys.platform == "win32"
 
-version = "0.1.4"
+version = "0.1.6"
 
 min_cython_ver = "0.21.0"
 try:
@@ -147,7 +147,11 @@ if not exists(join(src_top, "mecab", "src", "config.h")):
     build_dir = join(src_top, "build")
     os.makedirs(build_dir, exist_ok=True)
     os.chdir(build_dir)
-    run(["cmake", ".."])
+
+    # NOTE: The wrapped OpenJTalk does not depend on HTS_Engine,
+    # but since HTSEngine is included in CMake's dependencies, it refers to a dummy path.
+    r = run(["cmake", "..", "-DHTS_ENGINE_INCLUDE_DIR=.", "-DHTS_ENGINE_LIB=dummy"])
+    r.check_returncode()
     os.chdir(cwd)
 
 all_src = []
@@ -204,6 +208,11 @@ ext_modules += [
         extra_link_args=[],
         libraries=["winmm"] if platform_is_windows else [],
         language="c++",
+        define_macros=custom_define_macros(
+            [
+                ("AUDIO_PLAY_NONE", None),
+            ]
+        ),
     )
 ]
 
@@ -270,6 +279,7 @@ setup(
         "numpy >= 1.8.0",
         "cython >= " + min_cython_ver,
         "six",
+        "tqdm",
     ],
     tests_require=["nose", "coverage"],
     extras_require={
