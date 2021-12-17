@@ -185,7 +185,7 @@ def create_user_dict(path, out_path):
         _lazy_init()
     if not exists(path):
         raise ValueError("no such file or directory: %s" % path)
-    CreateUserDict(OPEN_JTALK_DICT_DIR, path.encode("utf-8"), out_path.encode("utf-8"))
+    CreateUserDict(OPEN_JTALK_DICT_DIR.encode(path_encoding), path.encode(path_encoding), out_path.encode(path_encoding))
 
 
 def set_user_dict(path):
@@ -200,5 +200,5 @@ def set_user_dict(path):
     if not exists(path):
         raise ValueError("no such file or directory: %s" % path)
     _global_jtalk = OpenJTalk(
-        dn_mecab=OPEN_JTALK_DICT_DIR, user_mecab=path.encode("utf-8")
+        dn_mecab=OPEN_JTALK_DICT_DIR.encode(path_encoding), user_mecab=path.encode(path_encoding)
     )
