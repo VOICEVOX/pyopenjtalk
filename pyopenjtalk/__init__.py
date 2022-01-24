@@ -206,7 +206,6 @@ def set_user_dict(path):
     )
 
 
-
 def unset_user_dict():
     """Stop applying user dictionary"""
     global _global_jtalk
