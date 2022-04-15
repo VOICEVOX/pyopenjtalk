@@ -164,7 +164,11 @@ cdef class OpenJTalk(object):
         """
         if isinstance(text, str):
           text = text.encode("utf-8")
+
+        if len(text) > 8192:
+          raise ValueError("Too long an input value.[Max:" + 8192 + " Byte]")
         cdef char buff[8192]
+
         text2mecab(buff, text)
         Mecab_analysis(self.mecab, buff)
         mecab2njd(self.njd, Mecab_get_feature(self.mecab), Mecab_get_size(self.mecab))
