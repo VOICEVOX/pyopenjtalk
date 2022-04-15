@@ -166,7 +166,7 @@ cdef class OpenJTalk(object):
           text = text.encode("utf-8")
 
         if len(text) > 8192:
-          raise ValueError("Too long an input value.[Max:" + 8192 + " Byte]")
+          raise ValueError("Too long an input value.[Max:" + str(8192) + " Byte]")
         cdef char buff[8192]
 
         text2mecab(buff, text)
