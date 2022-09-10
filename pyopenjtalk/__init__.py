@@ -20,8 +20,6 @@ except ImportError:
 from .htsengine import HTSEngine
 from .openjtalk import CreateUserDict, OpenJTalk
 
-path_encoding = locale.getpreferredencoding()
-
 # Dictionary directory
 # defaults to the package directory where the dictionary will be automatically downloaded
 OPEN_JTALK_DICT_DIR = os.environ.get(
@@ -183,7 +181,7 @@ def create_user_dict(path, out_path):
         _lazy_init()
     if not exists(path):
         raise ValueError("no such file or directory: %s" % path)
-    CreateUserDict(OPEN_JTALK_DICT_DIR.encode(path_encoding), path.encode(path_encoding), out_path.encode(path_encoding))
+    CreateUserDict(OPEN_JTALK_DICT_DIR, path.encode("utf-8"), out_path.encode("utf-8"))
 
 
 def set_user_dict(path):
@@ -198,7 +196,7 @@ def set_user_dict(path):
     if not exists(path):
         raise ValueError("no such file or directory: %s" % path)
     _global_jtalk = OpenJTalk(
-        dn_mecab=OPEN_JTALK_DICT_DIR.encode(path_encoding), user_mecab=path.encode(path_encoding)
+        dn_mecab=OPEN_JTALK_DICT_DIR, user_mecab=path.encode("utf-8")
     )
 
 
@@ -207,4 +205,4 @@ def unset_user_dict():
     global _global_jtalk
     if _global_jtalk is None:
         _lazy_init()
-    _global_jtalk = OpenJTalk(dn_mecab=OPEN_JTALK_DICT_DIR.encode(path_encoding))
+    _global_jtalk = OpenJTalk(dn_mecab=OPEN_JTALK_DICT_DIR)
