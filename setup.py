@@ -1,13 +1,10 @@
 import os
 import subprocess
 import sys
-from distutils.errors import DistutilsExecError
-from distutils.spawn import spawn
-from distutils.version import LooseVersion
+from looseversion import LooseVersion
 from glob import glob
 from itertools import chain
 from os.path import exists, join
-from subprocess import run
 
 import numpy as np
 import setuptools.command.build_py
@@ -132,7 +129,7 @@ if len(sys.argv) > 5:
         file_encoding = "utf8"
         arg_value = '"ARG"'
 
-        spawn(
+        subprocess.run(
             [
                 sys.executable,
                 "-c",
@@ -142,13 +139,14 @@ if len(sys.argv) > 5:
                 output_mode,
                 file_encoding,
                 arg_value,
-            ]
+            ],
+            check=True,
         )
 
         # read
         with open(file_name, mode="r", encoding=file_encoding) as fd:
             return fd.readline() != arg_value
-    except (DistutilsExecError, TypeError):
+    except (TypeError, subprocess.CalledProcessError):
         return False
 
 
@@ -187,7 +185,7 @@ if not exists(join(src_top, "mecab", "src", "config.h")):
 
     # NOTE: The wrapped OpenJTalk does not depend on HTS_Engine,
     # but since HTSEngine is included in CMake's dependencies, it refers to a dummy path.
-    r = run(["cmake", "..", "-DHTS_ENGINE_INCLUDE_DIR=.", "-DHTS_ENGINE_LIB=dummy"])
+    r = subprocess.run(["cmake", "..", "-DHTS_ENGINE_INCLUDE_DIR=.", "-DHTS_ENGINE_LIB=dummy"])
     r.check_returncode()
     os.chdir(cwd)
 
