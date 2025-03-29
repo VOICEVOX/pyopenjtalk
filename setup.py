@@ -1,9 +1,7 @@
 import os
 import subprocess
 import sys
-from distutils.errors import DistutilsExecError
-from distutils.spawn import spawn
-from distutils.version import LooseVersion
+from looseversion import LooseVersion
 from glob import glob
 from itertools import chain
 from os.path import exists, join
@@ -132,7 +130,7 @@ if len(sys.argv) > 5:
         file_encoding = "utf8"
         arg_value = '"ARG"'
 
-        spawn(
+        subprocess.run(
             [
                 sys.executable,
                 "-c",
@@ -142,13 +140,14 @@ if len(sys.argv) > 5:
                 output_mode,
                 file_encoding,
                 arg_value,
-            ]
+            ],
+            check=True,
         )
 
         # read
         with open(file_name, mode="r", encoding=file_encoding) as fd:
             return fd.readline() != arg_value
-    except (DistutilsExecError, TypeError):
+    except (TypeError, subprocess.CalledProcessError):
         return False
 
 
