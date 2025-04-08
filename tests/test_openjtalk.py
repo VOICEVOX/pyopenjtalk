@@ -1,3 +1,6 @@
+from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
+
 import pyopenjtalk
 
 
@@ -66,7 +69,10 @@ def test_g2p_kana():
     for text, pron in [
         ("今日もこんにちは", "キョーモコンニチワ"),
         ("いやあん", "イヤーン"),
-        ("パソコンのとりあえず知っておきたい使い方", "パソコンノトリアエズシッテオキタイツカイカタ"),
+        (
+            "パソコンのとりあえず知っておきたい使い方",
+            "パソコンノトリアエズシッテオキタイツカイカタ",
+        ),
     ]:
         p = pyopenjtalk.g2p(text, kana=True)
         assert p == pron
@@ -80,3 +86,53 @@ def test_g2p_phone():
     ]:
         p = pyopenjtalk.g2p(text, kana=False)
         assert p == pron
+
+
+def test_userdic():
+    for text, expected in [
+        ("nnmn", "n a n a m i N"),
+        ("GNU", "g u n u u"),
+    ]:
+        p = pyopenjtalk.g2p(text)
+        assert p != expected
+
+    user_csv = str(Path(__file__).parent / "test_data" / "user.csv")
+    user_dic = str(Path(__file__).parent / "test_data" / "user.dic")
+
+    with open(user_csv, "w", encoding="utf-8") as f:
+        f.write("ｎｎｍｎ,,,1,名詞,一般,*,*,*,*,ｎｎｍｎ,ナナミン,ナナミン,1/4,*\n")
+        f.write("ＧＮＵ,,,1,名詞,一般,*,*,*,*,ＧＮＵ,グヌー,グヌー,2/3,*\n")
+
+    pyopenjtalk.mecab_dict_index(f.name, user_dic)
+    pyopenjtalk.update_global_jtalk_with_user_dict(user_dic)
+
+    for text, expected in [
+        ("nnmn", "n a n a m i N"),
+        ("GNU", "g u n u u"),
+    ]:
+        p = pyopenjtalk.g2p(text)
+        assert p == expected
+
+
+def test_multithreading():
+    ojt = pyopenjtalk.openjtalk.OpenJTalk(pyopenjtalk.OPEN_JTALK_DICT_DIR)
+    texts = [
+        "今日もいい天気ですね",
+        "こんにちは",
+        "マルチスレッドプログラミング",
+        "テストです",
+        "Pythonはプログラミング言語です",
+        "日本語テキストを音声合成します",
+    ] * 4
+
+    # Test consistency between single and multi-threaded runs
+    # make sure no corruptions happen in OJT internal
+    results_s = [ojt.run_frontend(text) for text in texts]
+    results_m = []
+    with ThreadPoolExecutor() as e:
+        results_m = [i for i in e.map(ojt.run_frontend, texts)]
+    for s, m in zip(results_s, results_m):
+        assert len(s) == len(m)
+        for s_, m_ in zip(s, m):
+            # full context must exactly match
+            assert s_ == m_
